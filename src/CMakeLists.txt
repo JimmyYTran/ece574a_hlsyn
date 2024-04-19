@@ -1,6 +1,6 @@
 set(PROJECT_SOURCES
     fileio.cpp
-    schedule.cpp
+    graph.cpp
     Data.cpp
     Operation.cpp
 )
