@@ -8,6 +8,8 @@
 class Graph {
 private:
     std::vector<Operation> nodes;
+    std::vector<Data> inputs;
+    std::vector<Data> outputs;
     int latency_constrant;
 public:
     void do_asap_scheduling();
