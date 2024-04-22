@@ -4,6 +4,7 @@
 #include "Operation.h"
 
 #include <vector>
+#include <algorithm>
 
 class Graph {
 private:

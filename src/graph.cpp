@@ -14,9 +14,13 @@ void Graph::do_alap_scheduling()
 	{
 		for (int i = 0; i < this->nodes.size(); i++)
 		{
-			if (this->nodes[i].get_alap_time() != -1)
+			if (this->nodes[i].get_alap_time() == -1)
 			{
-				
+				if (std::find(line_outputs.begin(), line_outputs.end(), this->nodes[i].get_output())
+					!= line_outputs.end())
+				{
+					
+				}
 			}
 		}
 	}
