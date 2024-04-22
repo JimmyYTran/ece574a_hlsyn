@@ -7,19 +7,21 @@
 
 class Operation {
 private:
-	int id;
 	std::string name;
 	std::vector<Data> inputs;
 	Data output;
+	std::vector<double> op_probs;
 	int asap_time;
 	int alap_time;
+	int fds_time;
 public:
 	Operation();
 	Operation(std::string name);
 
 	void add_input(Data input);
+	int get_frame_width();
+	void set_op_probs(int latency);
 
-	int get_id() { return id; }
 	std::string get_name() { return name; }
 	void set_name(std::string name) { this->name = name; }
 	std::vector<Data> get_inputs() { return inputs; }
