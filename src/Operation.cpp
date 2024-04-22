@@ -5,6 +5,7 @@ Operation::Operation()
 	this->name = "";
 	this->asap_time = -1;
 	this->alap_time = -1;
+	this->fds_time = -1;
 }
 
 Operation::Operation(std::string name)
@@ -12,6 +13,7 @@ Operation::Operation(std::string name)
 	this->name = name;
 	this->asap_time = -1;
 	this->alap_time = -1;
+	this->fds_time = -1;
 }
 
 void Operation::add_input(Data input)
