@@ -73,7 +73,7 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 		// If the node has no successors, then schedule the node at latest_time_index, depending on the operation's cycle delay
 		if (successors.empty())
 		{
-			unsigned int latest_index = latency_constraint - current_node.get_cycle_delay() + 1;
+			unsigned int latest_index = latency_constraint - current_node.get_cycle_delay();
 			nodes[i].set_alap_time(latest_index);
 		}
 
