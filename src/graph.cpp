@@ -17,51 +17,44 @@ void Graph::add_output(Data output)
 
 void Graph::do_asap_scheduling()
 {
-	std::vector<Operation> operations = this->nodes;
-	std::vector<Data> line_inputs = this->inputs;
 	unsigned int time_index = 1;
-
-	while (!operations.empty())
+	// Iterate through the graph line-by-line (aka node-by-node)
+	for (unsigned int i = 0; i < nodes.size(); i++)
 	{
-		std::vector<Data> new_line_inputs = {};
+		Operation current_node = nodes[i];
 
-		for (unsigned int i = 0; i < this->nodes.size(); i++)
+		// Each node can have at most 2 immediate predecessors
+		std::vector<int> predecessors = current_node.get_pred_indices();
+		// Each node can have an (unlimited?) number of successors
+		std::vector<int> successors = current_node.get_succ_indices();
+
+		// If the node has no predecessors, then schedule the node at time_index = 1
+		if (predecessors.empty())
 		{
-			// Get the inputs of the node
-			Data temp = operations[i].get_inputs().at(0);
-			Data temp2 = operations[i].get_inputs().at(1);
-			bool is_Scheduled = false;
+			nodes[i].set_asap_time(time_index);
+		}
 
-			// If temp and temp2 both equal any of the current line_inputs 
-			if (std::find(line_inputs.begin(), line_inputs.end(), temp) != line_inputs.end())
+		// If the node has predecessors, then access the predecessor nodes
+		else
+		{
+			Operation temp_node = nodes[predecessors.at(0)];
+			Operation temp2_node = nodes[predecessors.at(1)];
+
+			// Calculate the times when each predecessor's operation finishes executing
+			unsigned int predecessor_1_time = temp_node.get_asap_time() + temp_node.get_cycle_delay();
+			unsigned int predecessor_2_time = temp_node.get_asap_time() + temp_node.get_cycle_delay();
+
+			// Set the current node's ASAP time_index to which of its two predecessors finishes executing last
+			if (predecessor_1_time > predecessor_2_time)
 			{
-				if (std::find(line_inputs.begin(), line_inputs.end(), temp2) != line_inputs.end())
-				{
-					// Schedule the node at the current time_index
-					nodes[i].set_asap_time(time_index);
-
-					// Push the scheduled node's outputs into line_inputs
-					new_line_inputs.push_back(operations[i].get_output());
-				}
+				current_node.set_asap_time(predecessor_1_time);
 			}
 
-			// If only temp1 or temp2 or neither are contained in line_inputs, then skip over (no code needed)
+			else
+			{
+				current_node.set_asap_time(predecessor_2_time);
+			}
 		}
-
-		// Append new_line_inputs to line_inputs for updated list of inputs; then clear new_line_inputs
-		line_inputs.insert(line_inputs.end(), new_line_inputs.begin(), new_line_inputs.end());
-
-		// Pop out the schedule node from operations
-		for (unsigned int i = 0; i < new_line_inputs.size(); i++)
-		{
-			operations.erase(std::find(operations.begin(), operations.end(), new_line_inputs[i]));
-		}
-
-		// Clear contents of new_line_inputs list
-		new_line_inputs.clear();
-
-		// Increment time_index before moving on to next cycle
-		time_index++;
 	}
 
 }

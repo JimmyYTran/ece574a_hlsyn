@@ -25,6 +25,7 @@ public:
 	void set_op_probs(int latency);
 	void add_pred_index(int predecessor_index);
 	void add_succ_index(int successor_index);
+	int get_cycle_delay();
 
 	std::string get_name() { return name; }
 	void set_name(std::string name) { this->name = name; }
@@ -45,6 +46,7 @@ public:
 
 	int get_fds_time() { return fds_time; }
 	void set_fds_time(int fds) { this->fds_time = fds; }
+
 };
 
 #endif

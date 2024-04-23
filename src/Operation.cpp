@@ -50,3 +50,26 @@ void Operation::add_succ_index(int successor_index)
 {
 	this->succ_indices.push_back(successor_index);
 }
+
+int Operation::get_cycle_delay()
+{
+	std::string operation_name = this->get_name();
+
+	// Assume operation is not a divider/modulo nor mulitiplication; then use if-statements to update operation_delay
+	unsigned int operation_delay = 1;
+
+	// Divider/modulo operation has a cycle delay = 3
+	if ((operation_name == "/") || (operation_name == "%"))
+	{
+		operation_delay = 3;
+	}
+
+	// Multiplication operation has a cycle delay = 2
+	else if (operation_name == "*")
+	{
+		operation_delay = 2;
+	}
+
+	return operation_delay;
+
+}
