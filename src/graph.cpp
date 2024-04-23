@@ -42,7 +42,7 @@ void Graph::do_asap_scheduling()
 
 			// Calculate the times when each predecessor's operation finishes executing
 			unsigned int predecessor_1_time = temp_node.get_asap_time() + temp_node.get_cycle_delay();
-			unsigned int predecessor_2_time = temp_node.get_asap_time() + temp_node.get_cycle_delay();
+			unsigned int predecessor_2_time = temp2_node.get_asap_time() + temp2_node.get_cycle_delay();
 
 			// Set the current node's ASAP time_index to which of its two predecessors finishes executing last
 			if (predecessor_1_time > predecessor_2_time)
