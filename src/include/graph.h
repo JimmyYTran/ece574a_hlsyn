@@ -14,7 +14,7 @@ private:
     int latency_constrant;
 public:
     void do_asap_scheduling();
-    void do_alap_scheduling();
+    void do_alap_scheduling(unsigned int latency_constraint);
 };
 
 #endif
