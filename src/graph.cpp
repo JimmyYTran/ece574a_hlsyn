@@ -95,9 +95,9 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 					successor_time_delay = schedule_time;
 				}
 
-				nodes[i].set_alap_time(schedule_time);
-
 			}
+
+			nodes[i].set_alap_time(successor_time_delay);
 
 		}
 
