@@ -21,7 +21,7 @@ public:
     void add_input(Data input);
     void add_output(Data output);
     void do_asap_scheduling();
-    void do_alap_scheduling();
+    void do_alap_scheduling(unsigned int latency_constraint);
     void set_type_distributions();
 
     std::vector<Operation> get_nodes() { return this->nodes; }
