@@ -3,6 +3,7 @@ set(PROJECT_SOURCES
     graph.cpp
     Data.cpp
     Operation.cpp
+    parser.cpp
 )
 
 add_library(hlsyn_lib ${PROJECT_SOURCES})

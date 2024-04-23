@@ -1,5 +1,20 @@
 #include "graph.h"
 
+void Graph::add_node(Operation node)
+{
+	this->nodes.push_back(node);
+}
+
+void Graph::add_input(Data input)
+{
+	this->inputs.push_back(input);
+}
+
+void Graph::add_output(Data output)
+{
+	this->outputs.push_back(output);
+}
+
 void Graph::do_asap_scheduling()
 {
 	std::vector<Operation> operations = this->nodes;
@@ -65,5 +80,19 @@ void Graph::do_alap_scheduling()
 				}
 			}
 		}
+	}
+}
+
+void Graph::set_type_distributions()
+{
+	// TODO: how are we naming operations?
+	std::vector<int> addsub_indices;
+	std::vector<int> mult_indices;
+	std::vector<int> logic_indices;
+	std::vector<int> divmod_indices;
+
+	for (int i = 0; i < (this->nodes).size(); i++)
+	{
+		this->nodes[i].set_op_probs(this->latency_constrant);
 	}
 }

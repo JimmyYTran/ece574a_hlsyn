@@ -40,3 +40,13 @@ void Operation::set_op_probs(int latency)
 		}
 	}
 }
+
+void Operation::add_pred_index(int predecessor_index)
+{
+	this->pred_indices.push_back(predecessor_index);
+}
+
+void Operation::add_succ_index(int successor_index)
+{
+	this->succ_indices.push_back(successor_index);
+}
