@@ -47,12 +47,12 @@ void Graph::do_asap_scheduling()
 			// Set the current node's ASAP time_index to which of its two predecessors finishes executing last
 			if (predecessor_1_time > predecessor_2_time)
 			{
-				current_node.set_asap_time(predecessor_1_time);
+				nodes[i].set_asap_time(predecessor_1_time);
 			}
 
 			else
 			{
-				current_node.set_asap_time(predecessor_2_time);
+				nodes[i].set_asap_time(predecessor_2_time);
 			}
 		}
 	}
@@ -61,23 +61,48 @@ void Graph::do_asap_scheduling()
 
 void Graph::do_alap_scheduling(unsigned int latency_constraint)
 {
-	std::vector<Operation> operations = this->nodes;
-	std::vector<Data> line_outputs = this->outputs;
-
-	while (!operations.empty())
+	// Iterate through the graph line-by-line (aka node-by-node)
+	for (unsigned int i = 0; i < nodes.size(); i++)
 	{
-		for (int i = 0; i < this->nodes.size(); i++)
+		Operation current_node = nodes[i];
+		unsigned int successor_time_delay = 0;
+
+		// Each node can have an (unlimited?) number of successors
+		std::vector<int> successors = current_node.get_succ_indices();
+
+		// If the node has no successors, then schedule the node at latest_time_index, depending on the operation's cycle delay
+		if (successors.empty())
 		{
-			if (this->nodes[i].get_alap_time() == -1)
-			{
-				if (std::find(line_outputs.begin(), line_outputs.end(), this->nodes[i].get_output())
-					!= line_outputs.end())
-				{
-					
-				}
-			}
+			unsigned int latest_index = latency_constraint - current_node.get_cycle_delay() + 1;
+			nodes[i].set_alap_time(latest_index);
 		}
+
+		// If the node has successors, then access successor nodes
+		else {
+
+			for (unsigned int j = 0; j < successors.size(); j++)
+			{
+				Operation temp_node = nodes[successors.at(j)];
+				int schedule_time = temp_node.get_alap_time() - temp_node.get_cycle_delay();
+				
+				if (j == 0)
+				{
+					successor_time_delay = schedule_time;
+				}
+
+				else if (schedule_time < successor_time_delay)
+				{
+					successor_time_delay = schedule_time;
+				}
+
+				nodes[i].set_alap_time(schedule_time);
+
+			}
+
+		}
+
 	}
+
 }
 
 void Graph::set_type_distributions()
