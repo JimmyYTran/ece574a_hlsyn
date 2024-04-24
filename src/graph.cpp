@@ -18,6 +18,7 @@ void Graph::add_output(Data output)
 void Graph::do_asap_scheduling()
 {
 	unsigned int time_index = 1;
+
 	// Iterate through the graph line-by-line (aka node-by-node)
 	for (unsigned int i = 0; i < nodes.size(); i++)
 	{
@@ -25,8 +26,6 @@ void Graph::do_asap_scheduling()
 
 		// Each node can have at most 2 immediate predecessors
 		std::vector<int> predecessors = current_node.get_pred_indices();
-		// Each node can have an (unlimited?) number of successors
-		std::vector<int> successors = current_node.get_succ_indices();
 
 		// If the node has no predecessors, then schedule the node at time_index = 1
 		if (predecessors.empty())
@@ -38,21 +37,24 @@ void Graph::do_asap_scheduling()
 		else
 		{
 			Operation temp_node = nodes[predecessors.at(0)];
-			Operation temp2_node = nodes[predecessors.at(1)];
-
 			// Calculate the times when each predecessor's operation finishes executing
 			unsigned int predecessor_1_time = temp_node.get_asap_time() + temp_node.get_cycle_delay();
-			unsigned int predecessor_2_time = temp2_node.get_asap_time() + temp2_node.get_cycle_delay();
+			
+			if (predecessors.size() > 1) {
 
-			// Set the current node's ASAP time_index to which of its two predecessors finishes executing last
-			if (predecessor_1_time > predecessor_2_time)
-			{
-				nodes[i].set_asap_time(predecessor_1_time);
+				Operation temp2_node = nodes[predecessors.at(1)];
+				unsigned int predecessor_2_time = temp2_node.get_asap_time() + temp2_node.get_cycle_delay();
+
+				// Set the current node's ASAP time_index to which of its two predecessors finishes executing last
+				if (predecessor_2_time > predecessor_1_time)
+				{
+					nodes[i].set_asap_time(predecessor_2_time);
+				}
 			}
 
 			else
 			{
-				nodes[i].set_asap_time(predecessor_2_time);
+				nodes[i].set_asap_time(predecessor_1_time);
 			}
 		}
 	}
