@@ -11,6 +11,7 @@ private:
 	std::vector<Data> inputs;
 	Data output;
 	std::vector<double> op_probs;
+	std::vector<double> type_dists;
 	std::vector<int> pred_indices;
 	std::vector<int> succ_indices;
 	int asap_time;
@@ -26,6 +27,7 @@ public:
 	void add_pred_index(int predecessor_index);
 	void add_succ_index(int successor_index);
 	int get_cycle_delay();
+	double calculate_self_force(int latency, int self_force_time);
 
 	std::string get_name() { return name; }
 	void set_name(std::string name) { this->name = name; }
@@ -34,6 +36,11 @@ public:
 
 	Data get_output() { return output; }
 	void set_output(Data output) { this->output = output; };
+
+	std::vector<double> get_op_probs() { return this->op_probs; }
+
+	std::vector<double> get_type_dists() { return this->op_probs; }
+	void set_type_dists(std::vector<double> type_dists) { this->type_dists = type_dists; }
 
 	std::vector<int> get_pred_indices() { return pred_indices; }
 	std::vector<int> get_succ_indices() { return succ_indices; }

@@ -32,11 +32,11 @@ void Operation::set_op_probs(int latency)
 	{
 		if (time >= this->asap_time && time <= this->alap_time)
 		{
-			op_probs.push_back(1.0 / this->get_frame_width());
+			this->op_probs.push_back(1.0 / this->get_frame_width());
 		}
 		else
 		{
-			op_probs.push_back(0.0);
+			this->op_probs.push_back(0.0);
 		}
 	}
 }
@@ -72,4 +72,23 @@ int Operation::get_cycle_delay()
 
 	return operation_delay;
 
+}
+
+double Operation::calculate_self_force(int latency, int self_force_time)
+{
+	double self_force = 0.0;
+	double op_prob = 1.0 / this->get_frame_width();
+	double delta_op_prob = 0.0;
+
+	for (int time = 1; time <= latency; time++)
+	{
+		delta_op_prob = (time == self_force_time) ? 1 - op_prob : 0 - op_prob;
+
+		if (time >= this->asap_time && time <= this->alap_time)
+		{
+			self_force += this->type_dists[time] * delta_op_prob;
+		}
+	}
+
+	return self_force;
 }

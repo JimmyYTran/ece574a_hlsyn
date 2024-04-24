@@ -107,14 +107,98 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 
 void Graph::set_type_distributions()
 {
-	// TODO: how are we naming operations?
 	std::vector<int> addsub_indices;
 	std::vector<int> mult_indices;
-	std::vector<int> logic_indices;
 	std::vector<int> divmod_indices;
+	std::vector<int> logic_indices;
 
 	for (int i = 0; i < (this->nodes).size(); i++)
 	{
+		// Calculate the operation probabilities for each node, and storing it in each node
 		this->nodes[i].set_op_probs(this->latency_constrant);
+
+		std::string operation_name = this->nodes[i].get_name();
+
+		// Organize the nodes by operation, for calculating type distributions later
+		if (operation_name == "+" || operation_name == "-")
+		{
+			addsub_indices.push_back(i);
+		}
+		else if (operation_name == "*")
+		{
+			mult_indices.push_back(i);
+		}
+		else if (operation_name == "/" || operation_name == "%")
+		{
+			divmod_indices.push_back(i);
+		}
+		else
+		{
+			logic_indices.push_back(i);
+		}
+	}
+
+	// Calculate type distributions for addsub, mult, divmod, and logical operations
+	// Each node will have its op probs and an array of type dists based on the operation's type
+	set_per_operation_type_distribution(addsub_indices);
+	set_per_operation_type_distribution(mult_indices);
+	set_per_operation_type_distribution(divmod_indices);
+	set_per_operation_type_distribution(logic_indices);
+}
+
+void Graph::set_per_operation_type_distribution(std::vector<int> indices)
+{
+	std::vector<double> type_dist;
+
+	// Starting from 0, since op prob for time 1 is the 0th index of the op prob array
+	for (int i = 0; i < this->latency_constrant; i++)
+	{
+		double current_type_dist = 0;
+
+		// Sum up each node's op prob for current time to get type distribution for current time
+		for (int index : indices)
+		{
+			current_type_dist += this->nodes[index].get_op_probs()[i];
+		}
+
+		type_dist.push_back(current_type_dist);
+	}
+
+	// Assign the type distribution vector to each node of that operation
+	for (int index : indices)
+	{
+		this->nodes[index].set_type_dists(type_dist);
+	}
+}
+
+void Graph::do_fds()
+{
+	Operation current_node;
+
+	// For each node in the graph, perform step 3 of fds
+	for (int i = 0; i < this->nodes.size(); i++)
+	{
+		current_node = this->nodes[i];
+		double min_total_force = std::numeric_limits<double>::infinity();
+		double current_total_force = 0.0;
+		int fds_schedule_time = 0;
+
+		// Calculate the forces for each time the node can be scheduled
+		for (int time = current_node.get_asap_time(); time <= current_node.get_alap_time(); time++)
+		{
+			// Calculate the self force when scheduling the node at the current time
+			current_total_force = current_node.calculate_self_force(this->latency_constrant, time);
+
+			//TODO: Add predecessor and successor forces to current_total_force
+
+			// Keep track of which schedule time gives the lowest total force
+			if (current_total_force < min_total_force)
+			{
+				min_total_force = current_total_force;
+				fds_schedule_time = time;
+			}
+		}
+
+		this->nodes[i].set_fds_time(fds_schedule_time);
 	}
 }
