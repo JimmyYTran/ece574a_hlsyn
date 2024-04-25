@@ -180,27 +180,48 @@ void Graph::do_fds()
 	// For each node in the graph, perform step 3 of fds
 	for (int i = 0; i < this->nodes.size(); i++)
 	{
-		current_node = this->nodes[i];
-		double min_total_force = std::numeric_limits<double>::infinity();
-		double current_total_force = 0.0;
-		int fds_schedule_time = 0;
-
-		// Calculate the forces for each time the node can be scheduled
-		for (int time = current_node.get_asap_time(); time <= current_node.get_alap_time(); time++)
+		// If time frame is 1, node can only be scheduled at that time, no need to calculate forces
+		if (this->nodes[i].get_asap_time() == this->nodes[i].get_alap_time())
 		{
-			// Calculate the self force when scheduling the node at the current time
-			current_total_force = current_node.calculate_self_force(this->latency_constrant, time);
-
-			//TODO: Add predecessor and successor forces to current_total_force
-
-			// Keep track of which schedule time gives the lowest total force
-			if (current_total_force < min_total_force)
-			{
-				min_total_force = current_total_force;
-				fds_schedule_time = time;
-			}
+			this->nodes[i].set_fds_time(this->nodes[i].get_asap_time());
 		}
+		else
+		{
+			current_node = this->nodes[i];
+			double min_total_force = std::numeric_limits<double>::infinity();
+			double current_total_force = 0.0;
+			int fds_schedule_time = 0;
 
-		this->nodes[i].set_fds_time(fds_schedule_time);
+			// Calculate the forces for each time the node can be scheduled
+			for (int time = current_node.get_asap_time(); time <= current_node.get_alap_time(); time++)
+			{
+				// Calculate the self force when scheduling the node at the current time
+				current_total_force = current_node.calculate_self_force(this->latency_constrant, time);
+
+				// Calculate predecessor forces for the node scheduled at the current time
+				for (int p_index = 0; p_index < current_node.get_pred_indices().size(); p_index++)
+				{
+					current_total_force +=
+						this->nodes[p_index].calculate_predecessor_force(this->latency_constrant, time);
+				}
+				
+				// Calculate successor forces for the node scheduled at the current time
+				for (int s_index = 0; s_index < current_node.get_succ_indices().size(); s_index++)
+				{
+					current_total_force +=
+						this->nodes[s_index].calculate_successor_force(this->latency_constrant, time);
+				}
+
+				// Keep track of which schedule time gives the lowest total force
+				if (current_total_force < min_total_force)
+				{
+					min_total_force = current_total_force;
+					fds_schedule_time = time;
+				}
+			}
+
+			// Schedule the node at the time with the lowest total force
+			this->nodes[i].set_fds_time(fds_schedule_time);
+		}
 	}
 }

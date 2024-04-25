@@ -28,6 +28,8 @@ public:
 	void add_succ_index(int successor_index);
 	int get_cycle_delay();
 	double calculate_self_force(int latency, int self_force_time);
+	double calculate_predecessor_force(int latency, int next_node_time);
+	double calculate_successor_force(int latency, int prev_node_time);
 
 	std::string get_name() { return name; }
 	void set_name(std::string name) { this->name = name; }
