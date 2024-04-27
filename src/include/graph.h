@@ -11,9 +11,11 @@ private:
     std::vector<Operation> nodes;
     std::vector<Data> inputs;
     std::vector<Data> outputs;
-    int latency_constrant;
+    int latency_constraint;
 
     void set_per_operation_type_distribution(std::vector<int> indices);
+    double calculate_predecessor_forces(Operation current_node, int current_time);
+    double calculate_successor_forces(Operation current_node, int current_time);
 public:
     void add_node(Operation node);
     void add_input(Data input);
@@ -27,8 +29,8 @@ public:
     std::vector<Data> get_inputs() { return this->inputs; }
     std::vector<Data> get_outputs() { return this->outputs; }
 
-    int get_latency_constraint() { return this->latency_constrant; }
-    void set_latency_constraint(int latency) { this->latency_constrant = latency; }
+    int get_latency_constraint() { return this->latency_constraint; }
+    void set_latency_constraint(int latency) { this->latency_constraint = latency; }
 };
 
 #endif

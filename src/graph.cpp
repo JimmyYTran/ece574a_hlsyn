@@ -117,7 +117,7 @@ void Graph::set_type_distributions()
 	for (int i = 0; i < (this->nodes).size(); i++)
 	{
 		// Calculate the operation probabilities for each node, and storing it in each node
-		this->nodes[i].set_op_probs(this->latency_constrant);
+		this->nodes[i].set_op_probs(this->latency_constraint);
 
 		std::string operation_name = this->nodes[i].get_name();
 
@@ -153,7 +153,7 @@ void Graph::set_per_operation_type_distribution(std::vector<int> indices)
 	std::vector<double> type_dist;
 
 	// Starting from 0, since op prob for time 1 is the 0th index of the op prob array
-	for (int i = 0; i < this->latency_constrant; i++)
+	for (int i = 0; i < this->latency_constraint; i++)
 	{
 		double current_type_dist = 0;
 
@@ -196,21 +196,13 @@ void Graph::do_fds()
 			for (int time = current_node.get_asap_time(); time <= current_node.get_alap_time(); time++)
 			{
 				// Calculate the self force when scheduling the node at the current time
-				current_total_force = current_node.calculate_self_force(this->latency_constrant, time);
+				current_total_force += current_node.calculate_self_force(this->latency_constraint, time);
 
 				// Calculate predecessor forces for the node scheduled at the current time
-				for (int p_index = 0; p_index < current_node.get_pred_indices().size(); p_index++)
-				{
-					current_total_force +=
-						this->nodes[p_index].calculate_predecessor_force(this->latency_constrant, time);
-				}
+				current_total_force += this->calculate_predecessor_forces(current_node, time);
 				
 				// Calculate successor forces for the node scheduled at the current time
-				for (int s_index = 0; s_index < current_node.get_succ_indices().size(); s_index++)
-				{
-					current_total_force +=
-						this->nodes[s_index].calculate_successor_force(this->latency_constrant, time);
-				}
+				current_total_force += this->calculate_successor_forces(current_node, time);
 
 				// Keep track of which schedule time gives the lowest total force
 				if (current_total_force < min_total_force)
@@ -218,10 +210,87 @@ void Graph::do_fds()
 					min_total_force = current_total_force;
 					fds_schedule_time = time;
 				}
+
+				// Reset the total force counter before moving on to the next possible schedule time
+				current_total_force = 0.0;
 			}
 
 			// Schedule the node at the time with the lowest total force
 			this->nodes[i].set_fds_time(fds_schedule_time);
 		}
 	}
+}
+
+double Graph::calculate_predecessor_forces(Operation current_node, int current_time)
+{
+	std::vector<int> pred_indices = current_node.get_pred_indices();
+	double pred_force = 0.0;
+
+	// If the node doesn't have predecessors, then there's no predecessor forces
+	if (pred_indices.empty())
+	{
+		return 0.0;
+	}
+
+	for (int pred_index : pred_indices)
+	{
+		Operation prev_node = this->get_nodes()[pred_index];
+
+		// The latest time that the predecessor can start, given the current node's scheduled time
+		int prev_node_latest_start_time = current_time - prev_node.get_cycle_delay();
+
+		// Check if scheduling the original node at current_time affects where this predecessor goes.
+		// If it doesn't affect where this predecessor would go, there is no predecessor force.
+		// Note: Need to pay attention to the previous node's cycle time!
+		if (prev_node.get_alap_time() > prev_node_latest_start_time)
+		{
+			// Calculate all self forces for the times the predecessor can be scheduled, and add them up
+			for (int time = prev_node.get_asap_time(); time <= prev_node_latest_start_time; time++)
+			{
+				pred_force += prev_node.calculate_self_force(this->latency_constraint, time);
+			}
+
+			// Recursively calculate forces for any other implicitly scheduled predecessors
+			pred_force += calculate_predecessor_forces(prev_node, prev_node_latest_start_time);
+		}
+	}
+
+	return pred_force;
+}
+
+double Graph::calculate_successor_forces(Operation current_node, int current_time)
+{
+	std::vector<int> succ_indices = current_node.get_succ_indices();
+	double succ_force = 0.0;
+
+	// If the node doesn't have successors, then there's no successor forces
+	if (succ_indices.empty())
+	{
+		return 0.0;
+	}
+
+	// Find the time that the current operation completes (i.e. time at which it is no longer running)
+	int current_node_end_time = current_time + current_node.get_cycle_delay();
+
+	for (int succ_index : succ_indices)
+	{
+		Operation next_node = this->get_nodes()[succ_index];
+
+		// Check if scheduling the original node at current_time affects where this successor goes.
+		// If it doesn't affect where this successor would go, there is no successor force.
+		// Note: Need to pay attention to the current node's cycle time!
+		if (next_node.get_asap_time() < current_node_end_time)
+		{
+			// Calculate all self forces for the times the successor can be scheduled, and add them up
+			for (int time = current_node_end_time; time <= next_node.get_alap_time(); time++)
+			{
+				succ_force += next_node.calculate_self_force(this->latency_constraint, time);
+			}
+
+			// Recursively calculate forces for any other implicitly scheduled successors
+			succ_force += calculate_successor_forces(next_node, current_node_end_time);
+		}
+	}
+
+	return succ_force;
 }
