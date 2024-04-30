@@ -3,14 +3,16 @@
 Operation::Operation()
 {
 	this->name = "";
+	this->line = "";
 	this->asap_time = -1;
 	this->alap_time = -1;
 	this->fds_time = -1;
 }
 
-Operation::Operation(std::string name)
+Operation::Operation(std::string name, std::string line)
 {
 	this->name = name;
+	this->line = line;
 	this->asap_time = -1;
 	this->alap_time = -1;
 	this->fds_time = -1;

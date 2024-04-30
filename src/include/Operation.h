@@ -20,7 +20,7 @@ private:
 	int fds_time;
 public:
 	Operation();
-	Operation(std::string name);
+	Operation(std::string name, std::string line);
 
 	void add_input(Data input);
 	int get_frame_width();
