@@ -24,6 +24,7 @@ public:
     void do_alap_scheduling(unsigned int latency_constraint);
     void set_type_distributions();
     void do_fds();
+    std::vector<std::vector<Operation>> get_nodes_ordered_by_time();
 
     std::vector<Operation> get_nodes() { return this->nodes; }
     std::vector<Data> get_inputs() { return this->inputs; }

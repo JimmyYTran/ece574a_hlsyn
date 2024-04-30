@@ -294,3 +294,25 @@ double Graph::calculate_successor_forces(Operation current_node, int current_tim
 
 	return succ_force;
 }
+
+std::vector<std::vector<Operation>> Graph::get_nodes_ordered_by_time()
+{
+	std::vector<std::vector<Operation>> ordered_nodes;
+	std::vector<Operation> current_time_nodes;
+
+	for (int time = 1; time <= this->latency_constraint; time++)
+	{
+		for (Operation node : this->nodes)
+		{
+			if (node.get_fds_time() == time)
+			{
+				current_time_nodes.push_back(node);
+			}
+		}
+
+		ordered_nodes.push_back(current_time_nodes);
+		current_time_nodes.clear();
+	}
+	
+	return ordered_nodes;
+}
