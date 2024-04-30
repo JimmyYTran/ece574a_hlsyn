@@ -11,6 +11,7 @@ private:
     std::vector<Operation> nodes;
     std::vector<Data> inputs;
     std::vector<Data> outputs;
+    std::vector<Data> variables;
     int latency_constraint;
 
     void set_per_operation_type_distribution(std::vector<int> indices);
@@ -29,6 +30,7 @@ public:
     std::vector<Operation> get_nodes() { return this->nodes; }
     std::vector<Data> get_inputs() { return this->inputs; }
     std::vector<Data> get_outputs() { return this->outputs; }
+    std::vector<Data> get_variables() { return this->variables;  }
 
     int get_latency_constraint() { return this->latency_constraint; }
     void set_latency_constraint(int latency) { this->latency_constraint = latency; }

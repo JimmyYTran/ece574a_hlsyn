@@ -290,6 +290,7 @@ double Graph::calculate_successor_forces(Operation current_node, int current_tim
 	return succ_force;
 }
 
+// Function that gives a vector of vectors
 std::vector<std::vector<Operation>> Graph::get_nodes_ordered_by_time()
 {
 	std::vector<std::vector<Operation>> ordered_nodes;

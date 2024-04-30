@@ -8,6 +8,7 @@
 class Operation {
 private:
 	std::string name;
+	std::string line;
 	std::vector<Data> inputs;
 	Data output;
 	std::vector<double> op_probs;
@@ -31,6 +32,9 @@ public:
 
 	std::string get_name() { return name; }
 	void set_name(std::string name) { this->name = name; }
+
+	std::string get_line() { return line; }
+	void set_line(std::string line) { this->line = line; }
 
 	std::vector<Data> get_inputs() { return inputs; }
 

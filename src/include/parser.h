@@ -40,6 +40,15 @@ std::vector<std::string> split_string(std::string line);
 
 int find_port(std::vector<Data> ports, std::string new_port_name);
 
-std::string module_instantiation();
+std::string module_instantiation(Graph HLSM);
+
+std::string comb_logic_reset(Graph HLSM);
+
+std::string write_state_logic(unsigned int j, std::vector<Operation> time_index_ops);
+
+std::string comb_logic_else(Graph HLSM);
+
+std::string write_Verilog_code(Graph state_machine);
+
 
 #endif
