@@ -38,19 +38,12 @@ std::vector<std::string> parse_netlist_lines
 		line_index++;
 	}
 
-	while (line_index < lines.size())
-	{
-		std::string module_line = create_module_instance_from_line(lines[line_index], line_index, ports, operations);
-
-		if (module_line.compare("ERROR") == 0)
-		{
-			std::cout << "Found error.\n";
-			return std::vector<std::string>();
-		}
-
-		verilog_lines.push_back("\t" + module_line);
-		line_index++;
+	int processed_lines = 0;
+	std::vector<std::string> processed = parse_line(lines, line_index, ports, operations, processed_lines);
+	if (processed.size() == 0) { // error case
+		return processed;
 	}
+	verilog_lines.insert(verilog_lines.end(), processed.begin(), processed.end()); // extend verilog lines with the new processed
 
 	std::string circuit_name = filename.substr(0, filename.find('.'));
 	verilog_lines.insert(verilog_lines.begin(), write_module_definition(ports, circuit_name));
@@ -58,6 +51,103 @@ std::vector<std::string> parse_netlist_lines
 	verilog_lines.push_back("endmodule");
 
 	return verilog_lines;
+}
+
+std::vector<std::string> parse_line(std::vector<std::string> lines, int current_line, std::vector<Data> ports, std::vector<Operation>& operations, int& num_processed_lines) {
+
+	int line_index = current_line;
+	std::vector<std::string> verilog_lines;
+
+	while (line_index < lines.size())
+	{
+		// the current line is the start of an if
+		if (lines[line_index].find('{') != std::string::npos) {
+			int lines_processed = 0;
+			std::string verilog_if = parse_if_statement(lines, line_index, ports, operations, lines_processed);
+			if (verilog_if.compare("ERROR") == 0)
+			{
+				std::cout << "Found error.\n";
+				return std::vector<std::string>();
+			}
+			verilog_lines.push_back(verilog_if);
+			line_index += lines_processed;
+
+		} else {
+			std::string module_line = create_module_instance_from_line(lines[line_index], line_index, ports, operations);
+
+			if (module_line.compare("ERROR") == 0)
+			{
+				std::cout << "Found error.\n";
+				return std::vector<std::string>();
+			}
+
+			verilog_lines.push_back("\t" + module_line);
+			line_index++;
+		}
+	}
+	num_processed_lines = line_index - current_line;
+	return verilog_lines;
+}
+
+std::string parse_if_statement(std::vector<std::string> lines, int line_index, std::vector<Data> ports, std::vector<Operation>& operations, int& lines_processed) {
+
+	std::string verilog;
+	std::string first_line = lines[line_index];
+	std::vector<std::string> split_line = split_string(first_line);
+
+	if (split_line.size() != 5) {
+		return "ERROR";
+	}
+	if (split_line[0].compare("if") != 0 || split_line[1].compare("(") != 0 || split_line[3].compare(")") != 0 || split_line[4].compare("{") != 0) {
+		return "ERROR";
+	}
+	Data condition;
+	for (int i = 0; i < ports.size(); i++) {
+		if (ports[i].get_name().compare(split_line[2]) == 0) {
+			condition = ports[i];
+		}
+	}
+	if (condition.get_name().size() == 0) {
+		return "ERROR";
+	}
+	int index = 1;
+	// parse if body
+	std::vector<Operation> if_body;
+	while (index + line_index < lines.size() && lines[index+line_index].find("}") == std::string::npos) {
+		int l = 0;
+		std::vector<std::string> parsed = parse_line(lines, index + line_index, ports, if_body, l);
+		for (std::string p : parsed) {
+			verilog += (p + "\n");
+		}
+		index += l;
+	}
+	std::vector<Operation> else_body;
+	if (index + line_index < lines.size()) { // not at end yet
+		std::vector<std::string> split_line = split_string(lines[index + line_index]);
+		if (split_line.size() == 2 && split_line[0].compare("else") == 0 && split_line[1].compare("{") == 0) { // else body found
+			index += 1;
+			int l = 0;
+			while (index + line_index < lines.size() && lines[index+line_index].find("}") == std::string::npos) {
+				std::vector<std::string> parsed = parse_line(lines, index + line_index, ports, else_body, l);
+				for (std::string p : parsed) {
+					verilog += (p + "\n");
+				}
+				index += l;
+			}
+		}
+	}
+	
+	// std::string lines_used;
+	// for (int j = line_index; j < line_index + index; j++) {
+	// 	lines_used += (lines[j] + "\n");
+	// }
+
+	Operation if_operation = Operation("IF");
+	if_operation.if_condition = condition;
+	if_operation.if_body = if_body;
+	if_operation.else_body = else_body;
+	lines_processed += index;
+	return verilog;
 }
 
 /*

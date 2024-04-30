@@ -2,6 +2,7 @@
 #define OPERATION_H
 
 #include <vector>
+#include <optional>
 
 #include "Data.h"
 
@@ -19,7 +20,11 @@ private:
 	int alap_time;
 	int fds_time;
 public:
+	std::vector<Operation> if_body;
+	std::vector<Operation> else_body;
+	std::optional<Data> if_condition;
 	Operation();
+	Operation(std::string name);
 	Operation(std::string name, std::string line);
 
 	void add_input(Data input);
