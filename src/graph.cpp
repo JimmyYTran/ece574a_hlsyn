@@ -15,6 +15,29 @@ void Graph::add_output(Data output)
 	this->outputs.push_back(output);
 }
 
+void Graph::link_nodes() 
+{
+	for (int i1 = 0; i1 < this->nodes.size(); i1++) 
+	{
+		for (int i2 = 0; i2 < this->nodes.size(); i2++) 
+		{
+			if (i1 == i2) 
+			{
+				continue;
+			}
+			std::string n1_name = this->nodes[i1].get_output().get_name();
+			for (auto n : this->nodes[i2].get_inputs()) 
+			{
+				if (n1_name == n.get_name()) 
+				{
+					this->nodes[i1].add_succ_index(i2);
+					this->nodes[i2].add_pred_index(i1);
+				}
+			}
+		}
+	}
+}
+
 void Graph::do_asap_scheduling()
 {
 	unsigned int time_index = 1;

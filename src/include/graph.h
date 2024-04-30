@@ -21,6 +21,7 @@ public:
     void add_node(Operation node);
     void add_input(Data input);
     void add_output(Data output);
+    void link_nodes();
     void do_asap_scheduling();
     void do_alap_scheduling(unsigned int latency_constraint);
     void set_type_distributions();
