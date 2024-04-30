@@ -672,7 +672,6 @@ std::string comb_logic_else(Graph HLSM)
 
 std::string write_Verilog_code(Graph state_machine)
 {
-
 	std::string verilog_file = module_instantiation(state_machine) + comb_logic_reset(state_machine) + comb_logic_else(state_machine);
 
 	return verilog_file;
