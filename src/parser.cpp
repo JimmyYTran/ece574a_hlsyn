@@ -496,3 +496,132 @@ int find_port(std::vector<Data> ports, std::string new_port_name)
 
 	return -1;
 }
+
+// Function to write the module instantiation in Verilog
+std::string module_instantiation(Graph HLSM)
+{
+	std::vector<Data> inputs = HLSM.get_inputs();
+
+
+
+	// Instantiate HLSM module per assignment requirements
+	std::string module_def = std::string("module HLSM (Clk, Rst, Start, Done);") + "\n";
+
+	// Define input and output ports
+	std::string input_ports = "\t" + std::string("input Clk, Rst, Start,");
+	for (unsigned int i = 0; i < )
+
+	std::string output_ports = "\t" + std::string("output reg Done;") + "\n";
+
+	// Define the state register
+	std::string state_register = "\t" + std::string("reg [") + std::string(":0] State\n");
+
+	// TODO: Define all local variables as regs
+	std::string reg_ports = "";
+	for (unsigned int i = 0; i < variables.size(); i++)
+	{
+		reg_ports += "\t" + std::string("variable reg [") + std::to_string(i) + std::string(":0] ") + variables[i] + ";\n";
+	}
+
+	std::string HLSM_module = module_def + input_ports + output_ports + reg_ports;
+
+	return HLSM_module;
+
+}
+
+// Function to write Verilog code when Rst == 1
+std::string comb_logic_reset()
+{
+
+	std::string reset_logic = "\n\t" + std::string("always @ (posedge Clk) begin") + "\n";
+
+	// Logic for when Rst is set to 1
+	reset_logic += "\t\t" + std::string("if (Rst == 1) begin") + "\n";
+
+	// Use a for loop to set all variables equal to 0 and the State to Wait, per the Rst == 1
+	for (unsigned int i = 0; i <= variables.size(); i++)
+	{
+		// Three indents for resetting all variables to 0
+		reset_logic += "\t\t\t";
+
+		if (i < variables.size())
+		{
+			reset_logic += variables[i] + std::string(" <= 0;") + "\n";
+		}
+
+		else
+		{
+			reset_logic += "Done <= 0;\n";      // Set Done = 0
+			reset_logic += "\t\t\tState <= Wait;\n";   // Reset the HLSM back to the Wait state
+		}
+	}
+
+	reset_logic += "\t\t" + std::string("end\n");
+
+	return reset_logic;
+
+}
+
+// for if statements, vector of operations -> Verilog
+// Vector of vectors of Operations to use in write_state
+
+// Function to write state Logic
+// std::string write_state_logic(unsigned int j)
+std::string write_state_logic(std::vector<Data>)
+{
+	std::string state = "\t\t\t\t" + std::string("State") + std::to_string(j) + std::string(" : begin") + "\n";
+
+	// Iterate through all the scheduled nodes for the time index
+	for (unsigned int i = 0; i < variables.size(); i++)
+	{
+		std::string node_instantiation = {};
+		// node_instantiation += 
+		// 
+		state += node_instantiation;
+	}
+
+	// Write transition to next state
+	state += "\t\t\t\t\t" + std::string("State <= State") + std::to_string(j) + "\n";
+
+	return state;
+}
+
+// Function to write Verilog code when Rst is not pressed
+std::string comb_logic_else()
+{
+	std::string else_logic = "\t\telse begin\n" + std::string("\t\t\tDone <= 0;\n");
+
+	else_logic += "\t\t\t" + std::string("case (State)") + "\n";
+
+	// Wait State Logic
+	else_logic += "\t\t\t\t" + std::string("Wait : begin") + "\n"
+		+ "\t\t\t\t\t" + std::string("if (Start == 1) begin") + "\n"
+		+ "\t\t\t\t\t\t" + std::string("State <= State1") + "\n"
+		+ "\t\t\t\t\t" + std::string("end") + "\n";
+
+	// Vector of vectors structure: a vector where each nested vector represents the operations in one time frame
+	for (unsigned int i = 0; i < variables.size(); i++)
+	{
+		else_logic += write_state_logic(i);
+	}
+
+	// Final State Logic
+	else_logic += "\t\t\t\t" + std::string("Final : begin") + "\n"
+		+ "\t\t\t\t\t" + std::string("State <= Wait") + "\n"
+		+ "\t\t\t\t" + std::string("end") + "\n";
+
+	else_logic += "\t\t\t" + std::string("endcase") + "\n";
+	else_logic += "\t\t" + std::string("end") + "\n";
+	else_logic += "\t" + std::string("end") + "\n";
+	else_logic += std::string("endmodule");
+
+	return else_logic;
+}
+
+std::string write_Verilog_code()
+{
+
+	std::string verilog_file = module_instantiation() + comb_logic_reset() + comb_logic_else();
+
+	return verilog_file;
+}

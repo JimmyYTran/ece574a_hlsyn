@@ -87,12 +87,7 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 				Operation temp_node = nodes[successors.at(j)];
 				int schedule_time = temp_node.get_alap_time() - temp_node.get_cycle_delay();
 				
-				if (j == 0)
-				{
-					successor_time_delay = schedule_time;
-				}
-
-				else if (schedule_time < successor_time_delay)
+				if (j == 0 || schedule_time < successor_time_delay)
 				{
 					successor_time_delay = schedule_time;
 				}

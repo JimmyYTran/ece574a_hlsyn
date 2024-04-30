@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "Operation.h"
+#include "graph.h"
 
 static const std::vector<std::string> OPERATION_SYMBOLS =
 std::vector<std::string>{ "*", ">", "<", "==", "?", ">>", "<<", "/", "%" };
@@ -38,5 +39,7 @@ std::string write_input_list(Operation operation);
 std::vector<std::string> split_string(std::string line);
 
 int find_port(std::vector<Data> ports, std::string new_port_name);
+
+std::string module_instantiation();
 
 #endif
