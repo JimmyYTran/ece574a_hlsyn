@@ -9,18 +9,24 @@
 class Graph {
 private:
     std::vector<Operation> nodes;
+    int base_nodes_size;
     std::vector<Data> inputs;
     std::vector<Data> outputs;
     std::vector<Data> variables;
     int latency_constraint;
 
+    void add_expanded_nodes(int current_node_index);
     void set_per_operation_type_distribution(std::vector<int> indices);
     double calculate_predecessor_forces(Operation current_node, int current_time);
     double calculate_successor_forces(Operation current_node, int current_time);
 public:
+    Graph();
+    Graph(std::vector<Operation> nodes, int latency);
+    std::vector<Operation> get_unexpanded_nodes();
     void add_node(Operation node);
     void add_input(Data input);
     void add_output(Data output);
+    void add_variable(Data output);
     void link_nodes();
     void do_asap_scheduling();
     void do_alap_scheduling(unsigned int latency_constraint);
