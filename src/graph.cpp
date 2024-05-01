@@ -137,8 +137,9 @@ void Graph::do_asap_scheduling()
 	for (unsigned int i = 0; i < nodes.size(); i++)
 	{
 		Operation current_node = nodes[i];
+		unsigned int latest_predecessor_delay = 0;
 
-		// Each node can have at most 2 immediate predecessors
+		// Get all predecessors of the node (nested nodes within if could have 3 predecessors)
 		std::vector<int> predecessors = current_node.get_pred_indices();
 
 		// If the node has no predecessors, then schedule the node at time_index = 1
@@ -150,26 +151,19 @@ void Graph::do_asap_scheduling()
 		// If the node has predecessors, then access the predecessor nodes
 		else
 		{
-			Operation temp_node = nodes[predecessors.at(0)];
-			// Calculate the times when each predecessor's operation finishes executing
-			unsigned int predecessor_1_time = temp_node.get_asap_time() + temp_node.get_cycle_delay();
-			
-			if (predecessors.size() > 1) {
-
-				Operation temp2_node = nodes[predecessors.at(1)];
-				unsigned int predecessor_2_time = temp2_node.get_asap_time() + temp2_node.get_cycle_delay();
-
-				// Set the current node's ASAP time_index to which of its two predecessors finishes executing last
-				if (predecessor_2_time > predecessor_1_time)
-				{
-					nodes[i].set_asap_time(predecessor_2_time);
-				}
-			}
-
-			else
+			for (unsigned int j = 0; j < predecessors.size(); j++)
 			{
-				nodes[i].set_asap_time(predecessor_1_time);
+				Operation temp_node = nodes[predecessors.at(j)];
+				int predecessor_delay = temp_node.get_asap_time() + temp_node.get_cycle_delay();
+
+				if (j == 0 || predecessor_delay > latest_predecessor_delay)
+				{
+					latest_predecessor_delay = predecessor_delay;
+				}
+
 			}
+
+			nodes[i].set_alap_time(latest_predecessor_delay);
 		}
 	}
 
@@ -181,9 +175,9 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 	for (unsigned int i = 0; i < nodes.size(); i++)
 	{
 		Operation current_node = nodes[i];
-		unsigned int successor_time_delay = 0;
+		unsigned int earliest_successor_time = 0;
 
-		// Each node can have an (unlimited?) number of successors
+		// Get all successors of the current node
 		std::vector<int> successors = current_node.get_succ_indices();
 
 		// If the node has no successors, then schedule the node at latest_time_index, depending on the operation's cycle delay
@@ -199,16 +193,16 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 			for (unsigned int j = 0; j < successors.size(); j++)
 			{
 				Operation temp_node = nodes[successors.at(j)];
-				int schedule_time = temp_node.get_alap_time() - temp_node.get_cycle_delay();
+				int successor_alap_time = temp_node.get_alap_time();
 				
-				if (j == 0 || schedule_time < successor_time_delay)
+				if (j == 0 || successor_alap_time < earliest_successor_time)
 				{
-					successor_time_delay = schedule_time;
+					earliest_successor_time = successor_alap_time;
 				}
 
 			}
 
-			nodes[i].set_alap_time(successor_time_delay);
+			nodes[i].set_alap_time(earliest_successor_time - current_node.get_cycle_delay());
 
 		}
 
