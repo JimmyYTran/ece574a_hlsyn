@@ -1,5 +1,90 @@
 #include "graph.h"
 
+Graph::Graph()
+{
+	this->latency_constraint = -1;
+	this->base_nodes_size = 0;
+}
+
+Graph::Graph(std::vector<Operation> nodes, int latency)
+{
+	this->nodes = nodes;
+	this->base_nodes_size = nodes.size();
+	this->latency_constraint = latency;
+
+	// nodes does not include nested nodes from if, so we need to get those to complete the graph
+	for (int i = 0; i < nodes.size(); i++)
+	{
+		if (this->nodes[i].get_name() == "IF")
+		{
+			this->add_expanded_nodes(i);
+		}
+	}
+}
+
+// Adds nested operations within if to the graph, while also adding predecessor/successor links
+void Graph::add_expanded_nodes(int current_node_index)
+{
+	Operation current_node = this->nodes[current_node_index];
+	std::vector<Operation> current_if_body = current_node.if_body;
+	std::vector<Operation> current_else_body = current_node.else_body;
+
+	Operation nested_node;
+	int nested_node_graph_index;
+
+	// Adding the operations from within the if statement
+	if (!current_if_body.empty())
+	{
+		for (int if_index = 0; if_index < current_if_body.size(); if_index++)
+		{
+			nested_node = current_if_body[if_index];
+
+			// Add the node (an operation within the if) to the list of nodes in the graph
+			this->nodes.push_back(nested_node);
+			nested_node_graph_index = this->nodes.size() - 1;
+
+			// Handling if dependencies and linking nodes together (because the other function only checks ports)
+			this->nodes[current_node_index].add_succ_index(nested_node_graph_index);
+			this->nodes[nested_node_graph_index].add_pred_index(current_node_index);
+
+			// If this happens to be a nested IF, handle it with recursion
+			if (nested_node.get_name() == "IF")
+			{
+				add_expanded_nodes(nested_node_graph_index);
+			}
+		}
+	}
+
+	// Adding the operations from within the else statement
+	if (!current_else_body.empty())
+	{
+		for (int else_index = 0; else_index < current_else_body.size(); else_index++)
+		{
+			nested_node = current_if_body[else_index];
+
+			// Add the node (an operation within the else) to the list of nodes in the graph
+			this->nodes.push_back(nested_node);
+			nested_node_graph_index = this->nodes.size() - 1;
+
+			// Handling if dependencies and linking nodes together (because the other function only checks ports)
+			this->nodes[current_node_index].add_succ_index(nested_node_graph_index);
+			this->nodes[nested_node_graph_index].add_pred_index(current_node_index);
+
+			// If this happens to be a nested IF, handle it with recursion
+			if (nested_node.get_name() == "IF")
+			{
+				add_expanded_nodes(nested_node_graph_index);
+			}
+		}
+	}
+}
+
+std::vector<Operation> Graph::get_unexpanded_nodes()
+{
+	std::vector<Operation> unexpanded_nodes(this->nodes.begin(), this->nodes.begin() + this->base_nodes_size);
+	return unexpanded_nodes;
+}
+
 void Graph::add_node(Operation node)
 {
 	this->nodes.push_back(node);
@@ -15,6 +100,12 @@ void Graph::add_output(Data output)
 	this->outputs.push_back(output);
 }
 
+void Graph::add_variable(Data variable)
+{
+	this->variables.push_back(variable);
+}
+
+// Links nodes together based on inputs and outputs (IF is already handled in add_expanded_nodes)
 void Graph::link_nodes() 
 {
 	for (int i1 = 0; i1 < this->nodes.size(); i1++) 
@@ -26,7 +117,7 @@ void Graph::link_nodes()
 				continue;
 			}
 			std::string n1_name = this->nodes[i1].get_output().get_name();
-			for (auto n : this->nodes[i2].get_inputs()) 
+			for (Data n : this->nodes[i2].get_inputs()) 
 			{
 				if (n1_name == n.get_name()) 
 				{
@@ -46,8 +137,9 @@ void Graph::do_asap_scheduling()
 	for (unsigned int i = 0; i < nodes.size(); i++)
 	{
 		Operation current_node = nodes[i];
+		unsigned int latest_predecessor_delay = 0;
 
-		// Each node can have at most 2 immediate predecessors
+		// Get all predecessors of the node (nested nodes within if could have 3 predecessors)
 		std::vector<int> predecessors = current_node.get_pred_indices();
 
 		// If the node has no predecessors, then schedule the node at time_index = 1
@@ -59,26 +151,19 @@ void Graph::do_asap_scheduling()
 		// If the node has predecessors, then access the predecessor nodes
 		else
 		{
-			Operation temp_node = nodes[predecessors.at(0)];
-			// Calculate the times when each predecessor's operation finishes executing
-			unsigned int predecessor_1_time = temp_node.get_asap_time() + temp_node.get_cycle_delay();
-			
-			if (predecessors.size() > 1) {
-
-				Operation temp2_node = nodes[predecessors.at(1)];
-				unsigned int predecessor_2_time = temp2_node.get_asap_time() + temp2_node.get_cycle_delay();
-
-				// Set the current node's ASAP time_index to which of its two predecessors finishes executing last
-				if (predecessor_2_time > predecessor_1_time)
-				{
-					nodes[i].set_asap_time(predecessor_2_time);
-				}
-			}
-
-			else
+			for (unsigned int j = 0; j < predecessors.size(); j++)
 			{
-				nodes[i].set_asap_time(predecessor_1_time);
+				Operation temp_node = nodes[predecessors.at(j)];
+				int predecessor_delay = temp_node.get_asap_time() + temp_node.get_cycle_delay();
+
+				if (j == 0 || predecessor_delay > latest_predecessor_delay)
+				{
+					latest_predecessor_delay = predecessor_delay;
+				}
+
 			}
+
+			nodes[i].set_alap_time(latest_predecessor_delay);
 		}
 	}
 
@@ -90,9 +175,9 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 	for (unsigned int i = 0; i < nodes.size(); i++)
 	{
 		Operation current_node = nodes[i];
-		unsigned int successor_time_delay = 0;
+		unsigned int earliest_successor_time = 0;
 
-		// Each node can have an (unlimited?) number of successors
+		// Get all successors of the current node
 		std::vector<int> successors = current_node.get_succ_indices();
 
 		// If the node has no successors, then schedule the node at latest_time_index, depending on the operation's cycle delay
@@ -108,16 +193,16 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 			for (unsigned int j = 0; j < successors.size(); j++)
 			{
 				Operation temp_node = nodes[successors.at(j)];
-				int schedule_time = temp_node.get_alap_time() - temp_node.get_cycle_delay();
+				int successor_alap_time = temp_node.get_alap_time();
 				
-				if (j == 0 || schedule_time < successor_time_delay)
+				if (j == 0 || successor_alap_time < earliest_successor_time)
 				{
-					successor_time_delay = schedule_time;
+					earliest_successor_time = successor_alap_time;
 				}
 
 			}
 
-			nodes[i].set_alap_time(successor_time_delay);
+			nodes[i].set_alap_time(earliest_successor_time - current_node.get_cycle_delay());
 
 		}
 
@@ -313,7 +398,7 @@ double Graph::calculate_successor_forces(Operation current_node, int current_tim
 	return succ_force;
 }
 
-// Function that gives a vector of vectors
+// Function that gives a vector of vectors ordered by when they're scheduled
 std::vector<std::vector<Operation>> Graph::get_nodes_ordered_by_time()
 {
 	std::vector<std::vector<Operation>> ordered_nodes;
