@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	node5.set_output(t5);
 	op_list.push_back(node5); // Index 4
 
-	Graph HLSM = Graph(op_list, 5);
+	Graph HLSM = Graph(op_list, 6);
 	HLSM.link_nodes();
 
 	HLSM.do_asap_scheduling();
@@ -55,9 +55,16 @@ int main(int argc, char* argv[])
 		std::cout << node.get_name() << std::endl;
 		std::cout << "ASAP Time: " + std::to_string(node.get_asap_time()) << std::endl;
 		std::cout << "ALAP Time: " + std::to_string(node.get_alap_time()) << std::endl;
+		std::cout << "Operation probabilities: " << std::endl;
 		for (double op_p : node.get_op_probs())
 		{
 			std::cout << std::to_string(op_p) << " | ";
+		}
+		std::cout << std::endl;
+		std::cout << "Type distributions: " << std::endl;
+		for (double ty_d : node.get_type_dists())
+		{
+			std::cout << std::to_string(ty_d) << " | ";
 		}
 		std::cout << std::endl;
 		std::cout << "FDS Time " + std::to_string(node.get_fds_time()) << std::endl;

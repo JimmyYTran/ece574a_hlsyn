@@ -49,7 +49,7 @@ public:
 
 	std::vector<double> get_op_probs() { return this->op_probs; }
 
-	std::vector<double> get_type_dists() { return this->op_probs; }
+	std::vector<double> get_type_dists() { return this->type_dists; }
 	void set_type_dists(std::vector<double> type_dists) { this->type_dists = type_dists; }
 
 	std::vector<int> get_pred_indices() { return pred_indices; }
