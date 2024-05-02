@@ -7,6 +7,6 @@ set(PROJECT_SOURCES
     parser2.cpp
 )
 
-add_library(hlsyn_lib ${PROJECT_SOURCES})
-add_executable(hlsyn hlsyn.cpp)
+add_library(hlsyn_lib ${PROJECT_SOURCES} "include/writeVerilog.h")
+add_executable(hlsyn hlsyn.cpp "include/writeVerilog.h")
 target_link_libraries(hlsyn hlsyn_lib)
