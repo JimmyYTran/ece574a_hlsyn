@@ -18,6 +18,12 @@ std::vector<std::string>{ "MUL", "COMP>", "COMP<", "COMP==", "MUX2x1", "SHR", "S
 std::vector<std::string> parse_netlist_lines
 (std::vector<std::string> lines, std::string filename, std::vector<Operation>& operations);
 
+std::vector<std::string> parse_line
+(std::vector<std::string> lines, int current_line, std::vector<Data> ports, std::vector<Operation>& operations, int& num_processed_lines);
+
+std::string parse_if_statement
+(std::vector<std::string> lines, int line_index, std::vector<Data> ports, std::vector<Operation>& operations, int& lines_processed);
+
 std::string strip_comment_from_line(std::string line);
 
 std::vector<std::string> remove_empty_lines(std::vector<std::string> lines);

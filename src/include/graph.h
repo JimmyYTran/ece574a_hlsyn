@@ -29,7 +29,7 @@ public:
     void add_variable(Data output);
     void link_nodes();
     void do_asap_scheduling();
-    void do_alap_scheduling(unsigned int latency_constraint);
+    void do_alap_scheduling();
     void set_type_distributions();
     void do_fds();
     std::vector<std::vector<Operation>> get_nodes_ordered_by_time();

@@ -5,7 +5,7 @@ Operation::Operation()
 	this->name = "";
 	this->line = "";
 	this->asap_time = -1;
-	this->alap_time = -1;
+	this->alap_time = std::numeric_limits<int>::max();
 	this->fds_time = -1;
 }
 
@@ -14,7 +14,7 @@ Operation::Operation(std::string name)
 	this->name = name;
 	this->line = "";
 	this->asap_time = -1;
-	this->alap_time = -1;
+	this->alap_time = std::numeric_limits<int>::max();
 	this->fds_time = -1;
 }
 
@@ -23,7 +23,7 @@ Operation::Operation(std::string name, std::string line)
 	this->name = name;
 	this->line = line;
 	this->asap_time = -1;
-	this->alap_time = -1;
+	this->alap_time = std::numeric_limits<int>::max();
 	this->fds_time = -1;
 }
 
@@ -70,13 +70,13 @@ int Operation::get_cycle_delay()
 	unsigned int operation_delay = 1;
 
 	// Divider/modulo operation has a cycle delay = 3
-	if ((operation_name == "/") || (operation_name == "%"))
+	if ((operation_name == "DIV") || (operation_name == "MOD"))
 	{
 		operation_delay = 3;
 	}
 
 	// Multiplication operation has a cycle delay = 2
-	else if (operation_name == "*")
+	else if (operation_name == "MUL")
 	{
 		operation_delay = 2;
 	}

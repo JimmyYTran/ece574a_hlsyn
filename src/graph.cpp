@@ -110,14 +110,10 @@ void Graph::link_nodes()
 {
 	for (int i1 = 0; i1 < this->nodes.size(); i1++) 
 	{
-		for (int i2 = 0; i2 < this->nodes.size(); i2++) 
+		for (int i2 = i1 + 1; i2 < this->nodes.size(); i2++) 
 		{
-			if (i1 == i2) 
-			{
-				continue;
-			}
 			std::string n1_name = this->nodes[i1].get_output().get_name();
-			for (Data n : this->nodes[i2].get_inputs()) 
+			for (auto n : this->nodes[i2].get_inputs()) 
 			{
 				if (n1_name == n.get_name()) 
 				{
@@ -163,16 +159,15 @@ void Graph::do_asap_scheduling()
 
 			}
 
-			nodes[i].set_alap_time(latest_predecessor_delay);
+			nodes[i].set_asap_time(latest_predecessor_delay);
 		}
 	}
-
 }
 
-void Graph::do_alap_scheduling(unsigned int latency_constraint)
+void Graph::do_alap_scheduling()
 {
 	// Iterate through the graph line-by-line (aka node-by-node)
-	for (unsigned int i = 0; i < nodes.size(); i++)
+	for (int i = nodes.size() - 1; i >= 0; i--)
 	{
 		Operation current_node = nodes[i];
 		unsigned int earliest_successor_time = 0;
@@ -183,7 +178,7 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 		// If the node has no successors, then schedule the node at latest_time_index, depending on the operation's cycle delay
 		if (successors.empty())
 		{
-			unsigned int latest_index = latency_constraint - current_node.get_cycle_delay();
+			unsigned int latest_index = latency_constraint - current_node.get_cycle_delay() + 1;
 			nodes[i].set_alap_time(latest_index);
 		}
 
@@ -203,11 +198,8 @@ void Graph::do_alap_scheduling(unsigned int latency_constraint)
 			}
 
 			nodes[i].set_alap_time(earliest_successor_time - current_node.get_cycle_delay());
-
 		}
-
 	}
-
 }
 
 void Graph::set_type_distributions()
@@ -225,15 +217,15 @@ void Graph::set_type_distributions()
 		std::string operation_name = this->nodes[i].get_name();
 
 		// Organize the nodes by operation, for calculating type distributions later
-		if (operation_name == "+" || operation_name == "-")
+		if (operation_name == "ADD" || operation_name == "SUB")
 		{
 			addsub_indices.push_back(i);
 		}
-		else if (operation_name == "*")
+		else if (operation_name == "MUL")
 		{
 			mult_indices.push_back(i);
 		}
-		else if (operation_name == "/" || operation_name == "%")
+		else if (operation_name == "DIV" || operation_name == "MOD")
 		{
 			divmod_indices.push_back(i);
 		}
