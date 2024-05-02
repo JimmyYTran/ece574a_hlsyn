@@ -398,7 +398,7 @@ std::vector<std::vector<Operation>> Graph::get_nodes_ordered_by_time()
 
 	for (int time = 1; time <= this->latency_constraint; time++)
 	{
-		for (Operation node : this->nodes)
+		for (Operation node : this->get_unexpanded_nodes())
 		{
 			if (node.get_fds_time() == time)
 			{
