@@ -60,7 +60,7 @@ void Graph::add_expanded_nodes(int current_node_index)
 	{
 		for (int else_index = 0; else_index < current_else_body.size(); else_index++)
 		{
-			nested_node = current_if_body[else_index];
+			nested_node = current_else_body[else_index];
 
 			// Add the node (an operation within the else) to the list of nodes in the graph
 			this->nodes.push_back(nested_node);
