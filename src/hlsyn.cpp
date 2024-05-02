@@ -29,10 +29,6 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	for (Operation o : operations) {
-		std::cout << o.get_name() << std::endl;
-	}
-
 	Graph HLSM = Graph(operations, latency);
 	HLSM.set_inputs(ports.inputs);
 	HLSM.set_outputs(ports.outputs);

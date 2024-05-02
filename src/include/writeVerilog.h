@@ -15,7 +15,7 @@ std::string module_instantiation(Graph HLSM);
 
 std::string comb_logic_reset(Graph HLSM);
 
-std::string write_scheduled_state(std::vector<Operation> scheduled_ops, unsigned int j);
+std::string write_scheduled_state(std::vector<Operation> scheduled_ops, int j, bool is_last);
 
 std::string write_if_statement(Operation op, unsigned int indent);
 
