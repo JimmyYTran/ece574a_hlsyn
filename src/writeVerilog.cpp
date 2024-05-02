@@ -238,6 +238,7 @@ std::string comb_logic_else(Graph HLSM)
 
 	// Final State Logic
 	else_logic += "\t\t\t\t" + std::string("Final : begin") + "\n"
+		+ "\t\t\t\t\t" + std::string("Done <= 1") + "\n"
 		+ "\t\t\t\t\t" + std::string("State <= Wait") + "\n"
 		+ "\t\t\t\t" + std::string("end") + "\n";
 
