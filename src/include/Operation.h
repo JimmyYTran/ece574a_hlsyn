@@ -2,6 +2,7 @@
 #define OPERATION_H
 
 #include <vector>
+#include <limits>
 #include <optional>
 
 #include "Data.h"
