@@ -45,10 +45,10 @@ std::vector<std::string> parse_netlist_lines
 	}
 	verilog_lines.insert(verilog_lines.end(), processed.begin(), processed.end()); // extend verilog lines with the new processed
 
-	std::string circuit_name = filename.substr(0, filename.find('.'));
-	verilog_lines.insert(verilog_lines.begin(), write_module_definition(ports, circuit_name));
-	verilog_lines.insert(verilog_lines.begin(), "`timescale 1ns / 1ps");
-	verilog_lines.push_back("endmodule");
+	//std::string circuit_name = filename.substr(0, filename.find('.'));
+	//verilog_lines.insert(verilog_lines.begin(), write_module_definition(ports, circuit_name));
+	//verilog_lines.insert(verilog_lines.begin(), "`timescale 1ns / 1ps");
+	//verilog_lines.push_back("endmodule");
 
 	return verilog_lines;
 }
@@ -60,24 +60,30 @@ std::vector<std::string> parse_line(std::vector<std::string> lines, int current_
 
 	while (line_index < lines.size())
 	{
+		//if (lines[line_index].find('}') != std::string::npos) {
+		//	line_index += 1;
+		//	break;
+		//}
 		// the current line is the start of an if
 		if (lines[line_index].find('{') != std::string::npos) {
 			int lines_processed = 0;
-			std::string verilog_if = parse_if_statement(lines, line_index, ports, operations, lines_processed);
+			std::vector<Operation> ops;
+			std::string verilog_if = parse_if_statement(lines, line_index, ports, ops, lines_processed);
+			operations.insert(operations.end(), ops.begin(), ops.end());
 			if (verilog_if.compare("ERROR") == 0)
 			{
-				std::cout << "Found error.\n";
+				std::cout << "HERE Found error.\n";
 				return std::vector<std::string>();
 			}
 			verilog_lines.push_back(verilog_if);
 			line_index += lines_processed;
-
+			std::cout << "DDDDDDDDDDD" << std::endl;
 		} else {
 			std::string module_line = create_module_instance_from_line(lines[line_index], line_index, ports, operations);
-
+			std::cout <<  "O.\n";
 			if (module_line.compare("ERROR") == 0)
 			{
-				std::cout << "Found error.\n";
+				std::cout << lines[line_index] << "   HERE1 Found error.\n";
 				return std::vector<std::string>();
 			}
 
@@ -115,7 +121,12 @@ std::string parse_if_statement(std::vector<std::string> lines, int line_index, s
 	std::vector<Operation> if_body;
 	while (index + line_index < lines.size() && lines[index+line_index].find("}") == std::string::npos) {
 		int l = 0;
+		std::cout << "asd" << lines[index + line_index] << std::endl;
 		std::vector<std::string> parsed = parse_line(lines, index + line_index, ports, if_body, l);
+		if (parsed.size() == 0) {
+			std::cout << "q" << lines[index + line_index] << std::endl;
+			return "ERROR";
+		}
 		for (std::string p : parsed) {
 			verilog += (p + "\n");
 		}
@@ -129,6 +140,9 @@ std::string parse_if_statement(std::vector<std::string> lines, int line_index, s
 			int l = 0;
 			while (index + line_index < lines.size() && lines[index+line_index].find("}") == std::string::npos) {
 				std::vector<std::string> parsed = parse_line(lines, index + line_index, ports, else_body, l);
+				if (parsed.size() == 0) {
+					return "ERROR";
+				}
 				for (std::string p : parsed) {
 					verilog += (p + "\n");
 				}
@@ -136,6 +150,7 @@ std::string parse_if_statement(std::vector<std::string> lines, int line_index, s
 			}
 		}
 	}
+	std::cout << "Done parsing if" << std::endl;
 	
 	// std::string lines_used;
 	// for (int j = line_index; j < line_index + index; j++) {
@@ -277,6 +292,7 @@ std::string create_port_declaration_from_line(std::string line, std::vector<Data
 std::string create_module_instance_from_line
 (std::string line, int line_num, std::vector<Data> ports, std::vector<Operation>& operations)
 {
+	std::cout << "IMHERE " << line << std::endl;
 	std::string veri_line = "";
 	std::vector<std::string> split_line = split_string(line);
 
@@ -561,6 +577,7 @@ std::vector<std::string> split_string(std::string line)
 	{
 		if (word.size() != 0)
 		{
+			word.erase(std::remove(word.begin(), word.end(), '\t'), word.end());
 			split_line.push_back(word);
 		}
 	}
@@ -607,7 +624,7 @@ std::string module_instantiation(Graph HLSM)
 		module_def += outputs[b].get_name();
 		module_def += (b == outputs.size() - 1) ? (std::string(";\n ")) : (std::string(", "));
 	}
-	
+
 	// Define input ports
 	std::string input_ports = "\t" + std::string("input Clk, Rst, Start;") + "\n";
 	input_ports += "\t" + std::string("input ");
@@ -617,7 +634,6 @@ std::string module_instantiation(Graph HLSM)
 		// Append each new input to the input_ports string
 		input_ports += inputs[i].get_name();
 
-		
 		// If at the end of the input list, then append a semicolon; else append a comma
 		input_ports += (i == inputs.size()) ? std::string(";\n") : std::string(", ");
 	}
@@ -666,34 +682,26 @@ std::string comb_logic_reset(Graph HLSM)
 	reset_logic += "\t\t" + std::string("if (Rst == 1) begin") + "\n";
 
 	// Use a for loop to set all variables equal to 0 and the State to Wait, per the Rst == 1
-	for (unsigned int i = 0; i <= reg_variables.size(); i++)
+	for (unsigned int i = 0; i < reg_variables.size(); i++)
 	{
 		// Three indents for resetting all variables to 0
 		reset_logic += "\t\t\t";
 
-		if (i < reg_variables.size())
+		if (i < reg_variables.size() - 1)
 		{
 			reset_logic += reg_variables[i].get_name() + std::string(" <= 0;") + "\n";
 		}
 
 	}
 
-	for (unsigned int j = 0; j <= outputs.size(); j++)
+	for (unsigned int j = 0; j < outputs.size(); j++)
 	{
 		reset_logic += "\t\t\t";
-
-		if (j < outputs.size())
-		{
-			reset_logic += outputs[j].get_name() + std::string(" <= 0;") + "\n";
-		}
-
-		else
-		{
-			reset_logic += "Done <= 0;\n";				// Set Done = 0
-			reset_logic += "\t\t\tState <= Wait;\n";   // Reset the HLSM back to the Wait state
-		}
-
+		reset_logic += outputs[j].get_name() + std::string(" <= 0;") + "\n";
 	}
+
+	reset_logic += "\t\t\tDone <= 0;\n";				// Set Done = 0
+	reset_logic += "\t\t\tState <= Wait;\n";   // Reset the HLSM back to the Wait state
 
 	reset_logic += "\t\t" + std::string("end\n");
 
@@ -720,7 +728,7 @@ std::string write_state_logic(unsigned int j, std::vector<Operation> time_index_
 	}
 
 	// Write transition to next state
-	state += "\t\t\t\t\t" + std::string("State <= State") + std::to_string(j+1) + "\n";
+	state += "\t\t\t\t\t" + std::string("State <= State") + std::to_string(j + 1) + "\n";
 
 	return state;
 }

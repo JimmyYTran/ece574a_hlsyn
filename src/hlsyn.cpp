@@ -1,5 +1,7 @@
+#include <iostream>
 #include "fileio.h"
 #include "graph.h"
+#include "parser2.h"
 
 int main(int argc, char* argv[])
 {
