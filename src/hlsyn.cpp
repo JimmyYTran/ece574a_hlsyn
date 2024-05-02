@@ -7,15 +7,9 @@
 
 int main(int argc, char* argv[])
 {
-	/*
 	std::string filename = argv[1];
 	int latency = std::atoi(argv[2]);
 	std::string output = argv[3];
-	*/
-
-	std::string filename = "C:\\Users\\ual-laptop\\source\\repos\\hlsyn_proj\\assignment3_testfiles_new\\if tests\\test_if3.c";
-	int latency = 4;
-	std::string output = "output.v";
 
 	std::vector<std::string> file_lines = read_file_to_strings(filename);
 	if (file_lines.size() == 0)
