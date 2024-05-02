@@ -3,7 +3,7 @@ set(PROJECT_SOURCES
     graph.cpp
     Data.cpp
     Operation.cpp
-    # parser.cpp
+    writeVerilog.cpp
     parser2.cpp
 )
 

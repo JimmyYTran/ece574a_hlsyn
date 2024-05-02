@@ -1,54 +1,50 @@
 #include <iostream>
+#include <cstdlib>
 #include "fileio.h"
 #include "graph.h"
 #include "parser2.h"
+#include "writeVerilog.h"
 
 int main(int argc, char* argv[])
 {
-	std::vector<Operation> op_list;
-	Operation node1 = Operation("ADD", "t1 = a + b");
-	Data a = Data("a", "Input", 32, false);
-	Data b = Data("b", "Input", 32, false);
-	Data t1 = Data("t1", "Variable", 32, false);
-	node1.add_input(a);
-	node1.add_input(b);
-	node1.set_output(t1);
-	op_list.push_back(node1); // Index 0
-	Operation node2 = Operation("ADD", "t2 = t1 + c");
-	Data c = Data("c", "Input", 32, false);
-	Data t2 = Data("t2", "Variable", 32, false);
-	node2.add_input(t1);
-	node2.add_input(c);
-	node2.set_output(t2);
-	op_list.push_back(node2); // Index 1
-	Operation node3 = Operation("ADD", "t3 = t2 + d");
-	Data d = Data("d", "Input", 32, false);
-	Data t3 = Data("t3", "Variable", 32, false);
-	node3.add_input(t2);
-	node3.add_input(d);
-	node3.set_output(t3);
-	op_list.push_back(node3); // Index 2
-	Operation node4 = Operation("MUL", "t4 = a * e");
-	Data e = Data("e", "Input", 32, false);
-	Data t4 = Data("t4", "Variable", 32, false);
-	node4.add_input(e);
-	node4.add_input(a);
-	node4.set_output(t4);
-	op_list.push_back(node4); // Index 3
-	Operation node5 = Operation("ADD", "t5 = t4 + t3");
-	Data t5 = Data("t5", "Variable", 32, false);
-	node5.add_input(t3);
-	node5.add_input(t4);
-	node5.set_output(t5);
-	op_list.push_back(node5); // Index 4
+	/*
+	std::string filename = argv[1];
+	int latency = std::atoi(argv[2]);
+	std::string output = argv[3];
+	*/
 
-	Graph HLSM = Graph(op_list, 6);
+	std::string filename = "C:\\Users\\Jimmy\\Documents\\School\\ECE574A\\HW3\\ece574a_hw3\\build\\src\\Debug\\hls_test1.c";
+	int latency = 4;
+	std::string output = "output.v";
+
+	std::vector<std::string> file_lines = read_file_to_strings(filename);
+	if (file_lines.size() == 0)
+	{
+		return 1;
+	}
+
+	auto [operations, ports, error] = parse(file_lines);
+	if (!error.empty()) {
+		std::cout << error << std::endl;
+		return 1;
+	}
+
+	for (Operation o : operations) {
+		std::cout << o.get_name() << std::endl;
+	}
+
+	Graph HLSM = Graph(operations, latency);
 	HLSM.link_nodes();
 
 	HLSM.do_asap_scheduling();
 	HLSM.do_alap_scheduling();
 	HLSM.set_type_distributions();
 	HLSM.do_fds();
+
+	std::vector<std::string> output_strings;
+	output_strings.push_back(write_Verilog_code(HLSM));
+
+	write_strings_to_file(output_strings, output);
 
 	for (Operation node : HLSM.get_nodes())
 	{

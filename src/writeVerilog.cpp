@@ -115,11 +115,18 @@ std::string write_scheduled_state(std::vector<Operation> scheduled_ops, unsigned
 
 	for (unsigned int i = 0; i < scheduled_ops.size(); i++)
 	{
-		write_if_statement(scheduled_ops[i]);
+		if (scheduled_ops[i].get_name().compare("IF") == 0) {
+			state_ops += write_if_statement(scheduled_ops[i], 0);
+		}
+		else
+		{
+			state_ops += write_normal_statement(scheduled_ops[i]);
+		}
 	}
 
 	state_ops += "\t" + std::string("end");
 
+	return state_ops;
 }
 
 std::string write_if_statement(Operation op, unsigned int indent)
@@ -135,7 +142,7 @@ std::string write_if_statement(Operation op, unsigned int indent)
 
 	for (Operation o : op.if_body)
 	{
-		if (o.get_name().compare("if") == 0) {
+		if (o.get_name().compare("IF") == 0) {
 			if_statement += write_if_statement(o, indent + 1);
 		}
 		else
@@ -148,7 +155,7 @@ std::string write_if_statement(Operation op, unsigned int indent)
 
 	for (Operation o : op.else_body)
 	{
-		if (o.get_name().compare("if") == 0) {
+		if (o.get_name().compare("IF") == 0) {
 			if_statement += write_if_statement(o, indent + 1);
 		}
 		else
@@ -217,5 +224,3 @@ std::string write_Verilog_code(Graph state_machine)
 
 	return verilog_file;
 }
-
-#endif
