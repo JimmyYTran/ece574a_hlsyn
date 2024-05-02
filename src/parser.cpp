@@ -709,28 +709,71 @@ std::string comb_logic_reset(Graph HLSM)
 
 }
 
-// Function to write state Logic
-std::string write_state_logic(unsigned int j, std::vector<Operation> time_index_ops)
+std::string write_scheduled_state(std::vector<Operation> scheduled_ops, unsigned int j)
 {
-	std::string state = "\t\t\t\t" + std::string("State") + std::to_string(j) + std::string(" : begin") + "\n";
+	std::string state_ops = "\t" + std::string("State") + std::to_string(j) + std::string(": begin\n");
 
-	// Iterate through all the scheduled nodes for the time index
-	for (unsigned int i = 0; i < time_index_ops.size(); i++)
+	for (unsigned int i = 0; i < scheduled_ops.size(); i++)
 	{
-		std::string node_instantiation = "\t\t\t\t\t";
-
-		std::string bracketed_equals = "<=";
-		std::string line = time_index_ops[i].get_line() + "\n";
-
-		line.replace(2, 1, bracketed_equals);
-
-		state += node_instantiation;
+		write_if_statement(scheduled_ops[i]);
 	}
 
-	// Write transition to next state
-	state += "\t\t\t\t\t" + std::string("State <= State") + std::to_string(j + 1) + "\n";
+	state_ops += "\t" + std::string("end");
 
-	return state;
+}
+
+std::string write_if_statement(Operation op, unsigned int indent)
+{
+
+	std::string if_statement = {};
+	for (unsigned int i = 0; i < indent; i++)
+	{
+		if_statement += "\t";
+	}
+
+	if_statement += std::string("if(") + op.if_condition.value().get_name() + std::string("== 1) begin\n");
+
+	for (Operation o : op.if_body)
+	{
+		if (o.get_name().compare("if") == 0) {
+			if_statement += write_if_statement(o, indent + 1);
+		}
+		else
+		{
+			if_statement += write_normal_statement(o);
+		}
+	}
+
+	if_statement += std::string("end\n\t\t\t\telse begin\n");
+
+	for (Operation o : op.else_body)
+	{
+		if (o.get_name().compare("if") == 0) {
+			if_statement += write_if_statement(o, indent + 1);
+		}
+		else
+		{
+			if_statement += write_normal_statement(o);
+		}
+	}
+
+	if_statement += std::string("end");
+
+	return if_statement;
+
+}
+
+// Function to write normal state logic
+std::string write_normal_statement(Operation ops)
+{
+
+	std::string line = "\t\t\t\t\t";
+	std::string node = ops.get_line() + "\n";
+	node.replace(2, 1, "<=");
+
+	line += node;
+
+	return line;
 }
 
 // Function to write Verilog code when Rst is not pressed
@@ -752,7 +795,7 @@ std::string comb_logic_else(Graph HLSM)
 	// Vector of vectors structure: a vector where each nested vector represents the operations in one time frame
 	for (unsigned int i = 0; i < index_scheduled_operations.size(); i++)
 	{
-		else_logic += write_state_logic(i, index_scheduled_operations[i]);
+		else_logic += write_scheduled_state(index_scheduled_operations[i], i);
 	}
 
 	// Final State Logic
