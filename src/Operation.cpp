@@ -100,7 +100,8 @@ double Operation::calculate_self_force(int latency, int current_time)
 		// for every time that the node can be scheduled in
 		if (time >= this->asap_time && time <= this->alap_time)
 		{
-			self_force += this->type_dists[time] * delta_op_prob;
+			// Keep in mind schedule times start at 1 but vector for type_dist starts at index 0
+			self_force += this->type_dists[time - 1] * delta_op_prob;
 		}
 	}
 

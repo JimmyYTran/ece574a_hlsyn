@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	node5.set_output(t5);
 	op_list.push_back(node5); // Index 4
 
-	Graph HLSM = Graph(op_list, 10);
+	Graph HLSM = Graph(op_list, 5);
 	HLSM.link_nodes();
 
 	HLSM.do_asap_scheduling();
@@ -59,6 +59,7 @@ int main(int argc, char* argv[])
 		{
 			std::cout << std::to_string(op_p) << " | ";
 		}
+		std::cout << std::endl;
 		std::cout << "FDS Time " + std::to_string(node.get_fds_time()) << std::endl;
 		std::cout << std::endl;
 	}
