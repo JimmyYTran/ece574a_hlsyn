@@ -14,15 +14,17 @@ std::string module_instantiation(Graph HLSM)
 	// Instantiate HLSM module per assignment requirements
 	std::string module_def = std::string("module HLSM (Clk, Rst, Start, Done, ");
 
+	// Iterate through graph's inputs, append the name to the module_def string and end with comma
 	for (unsigned int a = 0; a < inputs.size(); a++)
 	{
 		module_def += inputs[a].get_name() + std::string(", ");
 	}
 
+	// Iterate through graph's outputs, append the name to the module_def string and end with );
 	for (unsigned int b = 0; b < outputs.size(); b++)
 	{
 		module_def += outputs[b].get_name();
-		module_def += (b == outputs.size() - 1) ? (std::string(";\n ")) : (std::string(", "));
+		module_def += (b == outputs.size() - 1) ? (std::string(");\n ")) : (std::string(", "));
 	}
 
 	// Define input ports
@@ -220,7 +222,8 @@ std::string comb_logic_else(Graph HLSM)
 
 std::string write_Verilog_code(Graph state_machine)
 {
-	std::string verilog_file = module_instantiation(state_machine) + comb_logic_reset(state_machine) + comb_logic_else(state_machine);
+	std::string verilog_file = module_instantiation(state_machine);
+	// +comb_logic_reset(state_machine) + comb_logic_else(state_machine);
 
 	return verilog_file;
 }

@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 	std::string output = argv[3];
 	*/
 
-	std::string filename = "C:\\Users\\Jimmy\\Documents\\School\\ECE574A\\HW3\\ece574a_hw3\\build\\src\\Debug\\hls_test1.c";
+	std::string filename = "C:\\Users\\ual-laptop\\source\\repos\\hlsyn_proj\\assignment3_testfiles_new\\standard tests\\hls_test1.c";
 	int latency = 4;
 	std::string output = "output.v";
 
@@ -47,6 +47,8 @@ int main(int argc, char* argv[])
 
 	std::vector<std::string> output_strings;
 	output_strings.push_back(write_Verilog_code(HLSM));
+
+	std::cout << output_strings[0] << std::endl;
 
 	write_strings_to_file(output_strings, output);
 
