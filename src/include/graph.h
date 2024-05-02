@@ -35,9 +35,15 @@ public:
     std::vector<std::vector<Operation>> get_nodes_ordered_by_time();
 
     std::vector<Operation> get_nodes() { return this->nodes; }
+
     std::vector<Data> get_inputs() { return this->inputs; }
+    void set_inputs(std::vector<Data> inputs) { this->inputs = inputs; }
+
     std::vector<Data> get_outputs() { return this->outputs; }
+    void set_outputs(std::vector<Data> outputs) { this->outputs = outputs; }
+
     std::vector<Data> get_variables() { return this->variables;  }
+    void set_variables(std::vector<Data> variables) { this->variables = variables; }
 
     int get_latency_constraint() { return this->latency_constraint; }
     void set_latency_constraint(int latency) { this->latency_constraint = latency; }

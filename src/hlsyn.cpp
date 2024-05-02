@@ -34,6 +34,10 @@ int main(int argc, char* argv[])
 	}
 
 	Graph HLSM = Graph(operations, latency);
+	HLSM.set_inputs(ports.inputs);
+	HLSM.set_outputs(ports.outputs);
+	HLSM.set_variables(ports.variables);
+
 	HLSM.link_nodes();
 
 	HLSM.do_asap_scheduling();
