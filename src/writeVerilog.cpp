@@ -128,6 +128,7 @@ std::string write_scheduled_state(std::vector<Operation> scheduled_ops, unsigned
 		}
 	}
 
+	state_ops += std::string("\t\t\t\t\tState <= State") + std::to_string(j+1) + std::string(";\n");
 	state_ops += "\t\t\t\t" + std::string("end\n");
 
 	return state_ops;
@@ -152,7 +153,7 @@ std::string write_if_statement(Operation op, unsigned int indent)
 		}
 		else
 		{
-			if_statement += write_normal_statement(o, indent + 1);
+			if_statement += write_normal_statement(o, indent);
 		}
 	}
 
@@ -226,7 +227,7 @@ std::string comb_logic_else(Graph HLSM)
 	// Wait State Logic
 	else_logic += "\t\t\t\t" + std::string("Wait : begin") + "\n"
 		+ "\t\t\t\t\t" + std::string("if (Start == 1) begin") + "\n"
-		+ "\t\t\t\t\t\t" + std::string("State <= State1") + "\n"
+		+ "\t\t\t\t\t\t" + std::string("State <= State0") + "\n"
 		+ "\t\t\t\t\t" + std::string("end") + "\n";
 
 	// Vector of vectors structure: a vector where each nested vector represents the operations in one time frame
@@ -238,8 +239,8 @@ std::string comb_logic_else(Graph HLSM)
 
 	// Final State Logic
 	else_logic += "\t\t\t\t" + std::string("Final : begin") + "\n"
-		+ "\t\t\t\t\t" + std::string("Done <= 1") + "\n"
-		+ "\t\t\t\t\t" + std::string("State <= Wait") + "\n"
+		+ "\t\t\t\t\t" + std::string("Done <= 1;") + "\n"
+		+ "\t\t\t\t\t" + std::string("State <= Wait;") + "\n"
 		+ "\t\t\t\t" + std::string("end") + "\n";
 
 	else_logic += "\t\t\t" + std::string("endcase") + "\n";

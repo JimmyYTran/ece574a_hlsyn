@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 	std::string output = argv[3];
 	*/
 
-	std::string filename = "C:\\Users\\ual-laptop\\source\\repos\\hlsyn_proj\\assignment3_testfiles_new\\if tests\\test_if1.c";
+	std::string filename = "C:\\Users\\ual-laptop\\source\\repos\\hlsyn_proj\\assignment3_testfiles_new\\if tests\\test_if3.c";
 	int latency = 4;
 	std::string output = "output.v";
 
