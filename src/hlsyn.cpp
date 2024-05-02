@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 	std::string output = argv[3];
 	*/
 
-	std::string filename = "C:\\Users\\ual-laptop\\source\\repos\\hlsyn_proj\\assignment3_testfiles_new\\standard tests\\hls_test1.c";
+	std::string filename = "C:\\Users\\ual-laptop\\source\\repos\\hlsyn_proj\\assignment3_testfiles_new\\if tests\\test_if2.c";
 	int latency = 4;
 	std::string output = "output.v";
 
@@ -52,6 +52,7 @@ int main(int argc, char* argv[])
 
 	write_strings_to_file(output_strings, output);
 
+	/*
 	for (Operation node : HLSM.get_nodes())
 	{
 		std::cout << node.get_name() << std::endl;
@@ -72,6 +73,7 @@ int main(int argc, char* argv[])
 		std::cout << "FDS Time " + std::to_string(node.get_fds_time()) << std::endl;
 		std::cout << std::endl;
 	}
+	*/
 	
 	return 0;
 }

@@ -120,9 +120,11 @@ std::tuple<Operation, std::string> parse_if_statement(std::vector<std::string> l
 
 std::tuple<Operation, std::string> parse_single_line(std::vector<std::string> lines, Ports ports, int& parsed_lines) {
     std::vector<std::string> split_line = split_string(lines[parsed_lines]);
+	std::string line = lines[parsed_lines];
     parsed_lines += 1;
     std::string module_type = determine_module(split_line);
     Operation current_op = parse_line_to_operation(split_line, module_type, ports.get_all_ports());
+	current_op.set_line(line);
     return std::make_tuple(current_op, "");
 }
 

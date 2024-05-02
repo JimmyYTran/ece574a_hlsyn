@@ -6,6 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include <vector>
+#include <cmath>
 
 #include "Operation.h"
 #include "graph.h"
@@ -18,7 +19,7 @@ std::string write_scheduled_state(std::vector<Operation> scheduled_ops, unsigned
 
 std::string write_if_statement(Operation op, unsigned int indent);
 
-std::string write_normal_statement(Operation ops);
+std::string write_normal_statement(Operation ops, unsigned int indent);
 
 std::string comb_logic_else(Graph HLSM);
 

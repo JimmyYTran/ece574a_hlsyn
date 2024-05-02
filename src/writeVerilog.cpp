@@ -37,10 +37,11 @@ std::string module_instantiation(Graph HLSM)
 		input_ports += inputs[i].get_name();
 
 		// If at the end of the input list, then append a semicolon; else append a comma
-		input_ports += (i == inputs.size()) ? std::string(";\n") : std::string(", ");
+		input_ports += (i == inputs.size() - 1) ? std::string(";\n") : std::string(", ");
 	}
 
 	std::string output_ports = "\t" + std::string("output reg Done;") + "\n";
+	output_ports += "\t" + std::string("output ");
 
 	for (unsigned int j = 0; j < outputs.size(); j++)
 	{
@@ -48,7 +49,7 @@ std::string module_instantiation(Graph HLSM)
 		output_ports += outputs[j].get_name();
 
 		// If at the end of the output list, then append a semicolon; else append a comma
-		output_ports += (j == outputs.size()) ? std::string(";\n") : std::string(", ");
+		output_ports += (j == outputs.size() - 1) ? std::string(";\n") : std::string(", ");
 	}
 
 	// Define all local variables as reg variables
@@ -60,11 +61,11 @@ std::string module_instantiation(Graph HLSM)
 		variable_ports += reg_variables[k].get_name();
 
 		// If at the end of the reg_variables vector, then append a semicolon; else append a comma
-		variable_ports += (k == reg_variables.size()) ? std::string(";\n") : std::string(", ");
+		variable_ports += (k == reg_variables.size() - 1) ? std::string(";\n") : std::string(", ");
 	}
 
 	// Define the state register
-	std::string state_register = "\t" + std::string("reg [") + std::string(":0] State;\n");
+	std::string state_register = "\t" + std::string("reg [") + std::to_string((int)(ceil(log2(HLSM.get_latency_constraint())))) + std::string(":0] State;\n");
 
 	std::string HLSM_module = module_def + input_ports + output_ports + variable_ports + state_register;
 
@@ -89,7 +90,7 @@ std::string comb_logic_reset(Graph HLSM)
 		// Three indents for resetting all variables to 0
 		reset_logic += "\t\t\t";
 
-		if (i < reg_variables.size() - 1)
+		if (i < reg_variables.size())
 		{
 			reset_logic += reg_variables[i].get_name() + std::string(" <= 0;") + "\n";
 		}
@@ -113,20 +114,21 @@ std::string comb_logic_reset(Graph HLSM)
 
 std::string write_scheduled_state(std::vector<Operation> scheduled_ops, unsigned int j)
 {
-	std::string state_ops = "\t" + std::string("State") + std::to_string(j) + std::string(": begin\n");
+	std::string state_ops = "\t\t\t\t" + std::string("State") + std::to_string(j) + std::string(": begin\n");
 
 	for (unsigned int i = 0; i < scheduled_ops.size(); i++)
 	{
+		
 		if (scheduled_ops[i].get_name().compare("IF") == 0) {
-			state_ops += write_if_statement(scheduled_ops[i], 0);
+			state_ops += write_if_statement(scheduled_ops[i], 5);
 		}
 		else
 		{
-			state_ops += write_normal_statement(scheduled_ops[i]);
+			state_ops += write_normal_statement(scheduled_ops[i], 5);
 		}
 	}
 
-	state_ops += "\t" + std::string("end");
+	state_ops += "\t\t\t\t" + std::string("end\n");
 
 	return state_ops;
 }
@@ -140,20 +142,33 @@ std::string write_if_statement(Operation op, unsigned int indent)
 		if_statement += "\t";
 	}
 
-	if_statement += std::string("if(") + op.if_condition.value().get_name() + std::string("== 1) begin\n");
+	if_statement += std::string("if (") + op.if_condition.value().get_name() + std::string(") begin\n");
 
 	for (Operation o : op.if_body)
 	{
+
 		if (o.get_name().compare("IF") == 0) {
 			if_statement += write_if_statement(o, indent + 1);
 		}
 		else
 		{
-			if_statement += write_normal_statement(o);
+			if_statement += write_normal_statement(o, indent + 1);
 		}
 	}
 
-	if_statement += std::string("end\n\t\t\t\telse begin\n");
+	for (unsigned int i = 0; i < indent; i++)
+	{
+		if_statement += "\t";
+	}
+
+	if_statement += std::string("end\n");
+	
+	for (unsigned int i = 0; i < indent; i++)
+	{
+		if_statement += "\t";
+	}
+
+	if_statement += std::string("else begin\n");
 
 	for (Operation o : op.else_body)
 	{
@@ -162,23 +177,36 @@ std::string write_if_statement(Operation op, unsigned int indent)
 		}
 		else
 		{
-			if_statement += write_normal_statement(o);
+			if_statement += write_normal_statement(o, indent);
 		}
 	}
 
-	if_statement += std::string("end");
+	for (unsigned int i = 0; i < indent; i++)
+	{
+		if_statement += "\t";
+	}
+
+	if_statement += std::string("end\n");
 
 	return if_statement;
 
 }
 
 // Function to write normal state logic
-std::string write_normal_statement(Operation ops)
+std::string write_normal_statement(Operation ops, unsigned int indent)
 {
+	std::string line = {};
+	for (unsigned int i = 0; i < indent; i++)
+	{
+		line += "\t";
+	}
+	std::string node = ops.get_line() + ";\n";
 
-	std::string line = "\t\t\t\t\t";
-	std::string node = ops.get_line() + "\n";
-	node.replace(2, 1, "<=");
+	size_t pos = node.find('=');
+	while (pos != std::string::npos) {
+		node.replace(pos, 1, "<=");
+		pos = node.find('=', pos + 2); // Start searching from the next position
+	}
 
 	line += node;
 
@@ -204,6 +232,7 @@ std::string comb_logic_else(Graph HLSM)
 	// Vector of vectors structure: a vector where each nested vector represents the operations in one time frame
 	for (unsigned int i = 0; i < index_scheduled_operations.size(); i++)
 	{
+		// Call write_scheduled_state to write the operations in a time index aka Statei
 		else_logic += write_scheduled_state(index_scheduled_operations[i], i);
 	}
 
@@ -222,8 +251,7 @@ std::string comb_logic_else(Graph HLSM)
 
 std::string write_Verilog_code(Graph state_machine)
 {
-	std::string verilog_file = module_instantiation(state_machine);
-	// +comb_logic_reset(state_machine) + comb_logic_else(state_machine);
+	std::string verilog_file = module_instantiation(state_machine) + comb_logic_reset(state_machine) + comb_logic_else(state_machine);
 
 	return verilog_file;
 }
